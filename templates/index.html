@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Tumor Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            margin: 50px auto;
+            max-width: 800px;
+            text-align: center;
+        }
+        #upload-area {
+            border: 2px dashed #4CAF50;
+            padding: 50px;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        #upload-area:hover {
+            background-color: #e8f5e9;
+        }
+        .file-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        .file-button:hover {
+            background-color: #45a049;
+        }
+        #predict-button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        #predict-button:hover {
+            background-color: #0056b3;
+        }
+        #image-preview {
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .result span {
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Brain Tumor Detection</h1>
+    <p>Upload an image to predict the class</p>
+</header>
+
+<div class="container">
+    <div id="upload-area" onclick="document.getElementById('file-input').click();">
+        <p>Drag and Drop or Click to Upload Image</p>
+        <input type="file" id="file-input" style="display: none;" onchange="previewImage(event)">
+    </div>
+    <button id="predict-button" onclick="predictImage()">Predict</button>
+    <div class="result" id="prediction-result"></div>
+    <div id="image-container"></div>
+</div>
+
+<script>
+    let uploadedFile = null;
+
+    // Preview image after upload
+    function previewImage(event) {
+        const file = event.target.files[0];
+        uploadedFile = file;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imgElement = document.createElement('img');
+            imgElement.src = e.target.result;
+            imgElement.id = 'image-preview';
+            document.getElementById('image-container').innerHTML = '';
+            document.getElementById('image-container').appendChild(imgElement);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Predict the image class
+    function predictImage() {
+        if (!uploadedFile) {
+            alert("Please upload an image first.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', uploadedFile);
+
+        fetch('/predict', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                const predictionText = `Predicted Class: ${data.predicted_class}`;
+                document.getElementById('prediction-result').innerHTML = predictionText;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+</script>
+
+</body>
+</html>
